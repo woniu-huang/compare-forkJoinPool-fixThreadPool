@@ -7,6 +7,17 @@
 编写JMH测试用例，在常见应用场景下（将mysql的同步操作提交到独立线程池，让协程异步等待独立线程池执行完毕 ，可以利用CompletableFuture实现），对比不同调度器（FixedThreadPool，ForkJoinPool）的性能表现。
 
 
+
+**进度**：目前已经完成了JHM测试代码的编写，输出了测试结果。
+
+**待完成**：
+
+1. 设计测试用例，探究（FixedThreadPool，ForkJoinPool）在什么实际场景下具有区别于另一调度器的的性能，并探究原因。
+2. 尝试分析火焰图。
+
+
+
+
 **代码实现**
 
 ```java
@@ -23,7 +34,7 @@ import java.util.concurrent.*;
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Fork(1)
-@Warmup(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
+@Warmup(iterations = 3, time = 1, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 1, timeUnit = TimeUnit.SECONDS)
 public class DatabaseSyncPerformanceComparison {
 
@@ -31,11 +42,13 @@ public class DatabaseSyncPerformanceComparison {
 
     private static Thread.Builder.OfVirtual builder;
 
+
     /**
      * 初始化数据库连接池，根据参数选择协程的调度方式：FixedThreadPool、ForkJoinPool
      */
-    @Setup(Level.Trial)
+    @Setup(Level.Invocation)
     public void setup() {
+
         if( testOption == 0){
             ThreadFactory factory = Thread.ofPlatform().factory();
             builder = Thread.ofVirtual().scheduler(Executors.newFixedThreadPool(threadCount,factory));
@@ -43,14 +56,17 @@ public class DatabaseSyncPerformanceComparison {
             builder = Thread.ofVirtual().scheduler(new ForkJoinPool(threadCount));
         }
 
+
         dataSource = new BasicDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
         dataSource.setUsername("root");
-        dataSource.setPassword("123456");
-        dataSource.setUrl("jdbc:mysql://localhost:3306/hsb");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/testdb");
+        dataSource.setPassword("q19723011");
+//        dataSource.setPassword("123456");
+//        dataSource.setUrl("jdbc:mysql://localhost:3306/hsb");
     }
 
-    @TearDown(Level.Trial)
+    @TearDown(Level.Invocation)
     public void teardown() {
         try {
             dataSource.close();
@@ -59,7 +75,7 @@ public class DatabaseSyncPerformanceComparison {
         }
     }
 
-	@Param({"0", "1"})
+    @Param({"0", "1"})
     public int testOption;
 
     @Param({"1000", "5000", "10000"})
@@ -96,6 +112,8 @@ public class DatabaseSyncPerformanceComparison {
         return queryResult;
     }
 
+
+
     /**
      * 将mysql的同步操作提交到独立线程池中,并异步等待线程池完成任务
      */
@@ -113,6 +131,7 @@ public class DatabaseSyncPerformanceComparison {
                     }
                 });
             }
+
             try {
                 CompletableFuture.allOf(futures).join();
             } catch (Exception e) {
@@ -120,6 +139,11 @@ public class DatabaseSyncPerformanceComparison {
             }
         });
         thread.join();
+
+    }
+
+    public static void main(String[] args) throws Exception {
+        org.openjdk.jmh.Main.main(args);
     }
 }
 ```
@@ -160,18 +184,15 @@ public class DatabaseSyncPerformanceComparison {
 
 
 
-## 火焰图分析
+## 火焰图分析（暂无分析）
 
 调度器：FixedThreadPool   requestCount=10000  threadCount =1000
 
-详细文件地址： `demo/fiber/database_sync_performance_comparison/FixedThreadPool_10000_1000.html`
-
-![image-20230915102907926](./assets/image-20230915102907926.png)
+详细文件地址： `compare-forkJoinPool-fixThreadPool/FixedThreadPool_10000_1000.html`
 
 
 
 调度器：FixedThreadPool   requestCount=10000  threadCount =1000
 
-详细文件地址： `demo/fiber/database_sync_performance_comparison/ForkJoinPool_10000_1000.html`
+详细文件地址： `compare-forkJoinPool-fixThreadPool/ForkJoinPool_10000_1000.html`
 
-![image-20230915102927170](./assets/image-20230915102927170.png)
