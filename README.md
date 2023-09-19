@@ -188,11 +188,11 @@ public class DatabaseSyncPerformanceComparison {
 
 调度器：FixedThreadPool   requestCount=10000  threadCount =1000
 
-详细文件地址： `compare-forkJoinPool-fixThreadPool/FixedThreadPool_10000_1000.html`
+详细文件地址： `compare-forkJoinPool-fixThreadPool/FTP_10000_1000.html`
 
 
 
-调度器：FixedThreadPool   requestCount=10000  threadCount =1000
+调度器：ForkJoinPool   requestCount=10000  threadCount =1000
 
-详细文件地址： `compare-forkJoinPool-fixThreadPool/ForkJoinPool_10000_1000.html`
+详细文件地址： `compare-forkJoinPool-fixThreadPool/FJP_10000_1000.html`
 

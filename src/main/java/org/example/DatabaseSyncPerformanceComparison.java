@@ -52,23 +52,23 @@ public class DatabaseSyncPerformanceComparison {
         }
     }
 
-//    @Param({"0", "1"})
-//    public int testOption;
-//
-//    @Param({"1000", "5000", "10000"})
-//    public int requestCount;
-//
-//    @Param({"100", "500",  "1000"})
-//    public int threadCount;
-
-    @Param({"0","1"})
+    @Param({"0", "1"})
     public int testOption;
 
-    @Param({"100"})
+    @Param({"1000", "5000", "10000"})
     public int requestCount;
 
-    @Param({"1000","100","10"})
+    @Param({"100", "500",  "1000"})
     public int threadCount;
+
+//    @Param({"0","1"})
+//    public int testOption;
+//
+//    @Param({"100"})
+//    public int requestCount;
+//
+//    @Param({"1000","100","10"})
+//    public int threadCount;
 
 
 
